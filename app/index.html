@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c0392b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>小学语文字帖生成器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar noprint">
+  <h1>小学语文字帖 <small>统编版 · 写字表 · A4</small></h1>
+  <div class="ctl">
+    <label>年级 <select id="grade"></select></label>
+    <label>学期 <select id="term"></select></label>
+    <label>单元 <select id="unit"></select></label>
+    <label>格子 <select id="gridMm"><option value="16">16mm</option><option value="18" selected>18mm</option><option value="20">20mm</option></select></label>
+    <label>描红格 <select id="trace"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
+    <label class="chk"><input type="checkbox" id="steps" checked> 笔顺分步</label>
+    <label class="hdr">页眉 <input id="hdr" size="10" aria-label="页眉汉字"></label>
+    <button id="print" type="button">打印 / 存为PDF</button>
+  </div>
+  <p class="info" id="info"></p>
+  <p class="hint">提示：打印将调用系统打印对话框（纸张选 A4、缩放选“100%/实际大小”）；也可选“存储为PDF”。网页无法静默直连局域网打印机。</p>
+</header>
+<main id="pages" class="pages"></main>
+<svg id="defs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs></defs></svg>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+@font-face { font-family: "WenKai"; src: url("fonts/LXGWWenKaiGB-subset.woff2") format("woff2"); font-display: block; }
+:root { --red:#c0392b; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: "WenKai","KaiTi","Kaiti SC","STKaiti",serif; background:#e9e6e0; color:#222; }
+.bar { position:sticky; top:0; z-index:5; background:#fffaf0; border-bottom:2px solid var(--red); padding:8px 12px; }
+.bar h1 { margin:0 0 6px; font-size:18px; color:var(--red); } .bar h1 small { font-size:12px; color:#777; font-weight:normal; }
+.ctl { display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+.ctl label { font-size:14px; white-space:nowrap; } .ctl select,.ctl input[type=text],.ctl input:not([type]) { font:inherit; font-size:14px; padding:3px 4px; }
+button { font:inherit; background:var(--red); color:#fff; border:0; border-radius:6px; padding:6px 14px; }
+.info { margin:6px 0 0; font-size:13px; } .hint { margin:2px 0 0; font-size:11px; color:#888; }
+.pages { padding:10px 0 40px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+.page { width:210mm; height:297mm; background:#fff; position:relative; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.3); flex:none; }
+.page svg.pg { position:absolute; left:0; top:0; width:210mm; height:297mm; }
+.page text { font-family:"WenKai","KaiTi","Kaiti SC","STKaiti",serif; }
+@page { size: A4 portrait; margin: 0; }
+@media print {
+  html,body { background:#fff; margin:0; }
+  .noprint { display:none !important; }
+  .pages { padding:0; display:block; zoom:1 !important; }
+  .page { box-shadow:none; break-after:page; page-break-after:always; margin:0; }
+  .page:last-child { break-after:auto; page-break-after:auto; }
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}

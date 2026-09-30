@@ -1,0 +1,4 @@
+{ "name": "zitie-pwa", "version": "0.1.0-scaffold", "private": true,
+  "description": "统编版小学语文 A4 字帖 PWA（脚手架）", "license": "UNLICENSED",
+  "scripts": { "build": "/workspace/venv/bin/python tools/build.py", "serve": "python3 -m http.server 8080 -d app", "sample": "/workspace/venv/bin/python tools/render_sample.py" },
+  "dependencies": { "hanzi-writer-data": "^2.0.1" } }
