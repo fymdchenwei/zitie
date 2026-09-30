@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#c0392b">
+<meta name="theme-color" content="#4fae8a">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -13,22 +13,61 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="bar noprint">
-  <h1>小学语文字帖 <small>统编版 · 写字表 · A4</small></h1>
-  <div class="ctl">
-    <label>年级 <select id="grade"></select></label>
-    <label>学期 <select id="term"></select></label>
-    <label>单元 <select id="unit"></select></label>
-    <label>格子 <select id="gridMm"><option value="16">16mm</option><option value="18" selected>18mm</option><option value="20">20mm</option></select></label>
-    <label>描红格 <select id="trace"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
-    <label class="chk"><input type="checkbox" id="steps" checked> 笔顺分步</label>
-    <label class="hdr">页眉 <input id="hdr" size="10" aria-label="页眉汉字"></label>
-    <button id="print" type="button">打印 / 存为PDF</button>
+<section class="view active" id="p-set">
+  <div class="top">
+    <div class="logo" aria-hidden="true">字</div>
+    <div><h1>汉字字帖</h1><small>选好内容，一键生成练习页</small></div>
+    <div class="step">① 设置</div>
   </div>
-  <p class="info" id="info"></p>
-  <p class="hint">提示：打印将调用系统打印对话框（纸张选 A4、缩放选“100%/实际大小”）；也可选“存储为PDF”。网页无法静默直连局域网打印机。</p>
-</header>
-<main id="pages" class="pages"></main>
+  <div class="body">
+    <div class="field">
+      <label id="grade-label">年级</label>
+      <div class="grades" id="grades" role="group" aria-labelledby="grade-label"></div>
+    </div>
+    <div class="two">
+      <div class="field">
+        <label id="term-label">学期</label>
+        <div class="seg" id="term" role="group" aria-labelledby="term-label">
+          <button type="button" data-v="1" class="on">上学期</button>
+          <button type="button" data-v="2">下学期</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="unit">单元</label>
+        <select id="unit"></select>
+      </div>
+    </div>
+    <div class="field name-field">
+      <label for="name">姓名 <span class="opt">（将显示在页眉，并按字生成练习行）</span></label>
+      <select id="name" class="pending">
+        <option value="">请选择姓名</option>
+      </select>
+    </div>
+    <div class="pv" id="pv"></div>
+  </div>
+  <div class="dock noprint">
+    <button class="cta" id="go" type="button">确认生成</button>
+    <p class="note">打印将打开系统打印（含 AirPrint）。保存为 PDF 请在打印对话框里选择“另存为 PDF”。网页无法静默直连局域网打印机。</p>
+  </div>
+</section>
+
+<section class="view" id="p-res">
+  <div class="top noprint">
+    <button class="back" id="back" type="button">返回设置</button>
+    <div class="step">② 预览 · A4</div>
+  </div>
+  <div class="r-body">
+    <p class="r-tip noprint" id="rtip"></p>
+    <main id="pages" class="pages"></main>
+  </div>
+  <div class="dock noprint">
+    <div class="actions">
+      <button class="abtn p" id="print" type="button">打印<small>系统打印 / AirPrint</small></button>
+      <button class="abtn s" id="pdf" type="button">保存为PDF<small>在打印对话框选“另存为PDF”</small></button>
+    </div>
+    <p class="note">保存为 PDF 会打开同一个系统打印对话框，请在其中选择“另存为 PDF”。</p>
+  </div>
+</section>
 <svg id="defs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs></defs></svg>
 <script type="module" src="app.js"></script>
 </body>

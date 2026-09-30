@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / 'app'
 Z = ROOT / 'research/zishi/src/data'
 HW = ROOT / 'node_modules/hanzi-writer-data'
-HEADER_CHARS = ['陈', '一', '佳', '怡']   # must match app/config.js default
+HEADER_CHARS = ['陈', '一', '佳', '怡']   # 姓名用字，必须留在离线笔顺包；拼音在 app/config.js namePinyin
 
 C = json.load(open(Z / 'chars.json'))
 V = json.load(open(Z / 'volumes.json'))
