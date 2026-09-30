@@ -1,4 +1,7 @@
 @font-face { font-family: "WenKai"; src: url("fonts/LXGWWenKaiGB-subset.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "ZitieSong"; src: url("fonts/ZitieSong-subset.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "ZitieHei"; src: url("fonts/ZitieHei-subset.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "ZitieFang"; src: url("fonts/ZitieFang-subset.woff2") format("woff2"); font-display: block; }
 :root {
   --green:#4fae8a; --green-d:#2f8a69; --green-l:#e6f5ee;
   --blue:#5b9bd5;
@@ -43,7 +46,8 @@ select.hl { border-color:#e9a23b; animation:sh .35s; }
 .cell { display:flex; flex-direction:column; }
 .py { height:18px; font-size:13px; color:var(--green-d); text-align:center; line-height:18px; font-weight:600; }
 .tz { aspect-ratio:1; border:1.5px solid #8fb9a6; margin-left:-1.5px; position:relative; display:grid; place-items:center; font-family:var(--kai); line-height:1; color:#1f2d33; background:linear-gradient(to right,transparent calc(50% - .5px),#c7dcd2 calc(50% - .5px),#c7dcd2 calc(50% + .5px),transparent calc(50% + .5px)),linear-gradient(to bottom,transparent calc(50% - .5px),#c7dcd2 calc(50% - .5px),#c7dcd2 calc(50% + .5px),transparent calc(50% + .5px)); background-color:#fff; }
-.tz .g { font-size:var(--fs,34px); }
+.tz .g { font-size:var(--fs,34px); font-family:var(--preview-font, var(--kai)); }
+.font-note { margin:8px 4px 0; font-size:12px; line-height:1.45; color:#8c9aa2; font-weight:400; }
 .tz.std { color:#1f2d33; }
 .tz.ghost { color:#cfd6d9; }
 .cell:first-child .tz { margin-left:0; }

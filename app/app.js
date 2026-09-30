@@ -19,13 +19,17 @@ async function init() {
   await document.fonts.load('16px WenKai', '陈一佳怡āáǎàēéěèīíǐì').catch(() => {});
   buildGrades();
   buildNames();
+  buildFonts();
   const grade = q.get('g') || saved.g || 1;
   setGrade(grade);
   setTerm(q.get('t') || saved.t || 1);
   fillUnits(q.get('u') || saved.u || 1);
   const name = q.get('name') || saved.name || '';
   if ([...$('name').options].some((o) => o.value === name)) $('name').value = name;
+  const font = q.get('font') || saved.font || CONFIG.defaultFont;
+  if ([...$('font').options].some((o) => o.value === font)) $('font').value = font;
   syncNameStyle();
+  await syncFont();
   $('term').onclick = (e) => {
     const b = e.target.closest('button');
     if (!b) return;
@@ -36,6 +40,7 @@ async function init() {
   };
   $('unit').onchange = () => { renderPreview(); persist(); };
   $('name').onchange = () => { syncNameStyle(); renderPreview(); persist(); };
+  $('font').onchange = async () => { await syncFont(); renderPreview(); persist(); };
   $('go').onclick = confirmGenerate;
   $('back').onclick = () => show('p-set');
   $('print').onclick = () => window.print();
@@ -102,6 +107,28 @@ function buildNames() {
   const n = $('name');
   CONFIG.names.forEach((name) => n.add(new Option(name, name)));
 }
+function buildFonts() {
+  const s = $('font');
+  CONFIG.fonts.forEach((f) => s.add(new Option(f.label, f.id)));
+}
+function currentFont() {
+  return CONFIG.fonts.find((f) => f.id === $('font').value) || CONFIG.fonts[0];
+}
+async function syncFont() {
+  const f = currentFont();
+  document.body.dataset.font = f.id;
+  const notes = {
+    stroke: '默认是笔画楷体：标准字、描红和笔顺分步都用笔画轮廓，不是某一个字体文件。',
+    kai: '楷体用霞鹜文楷。标准字和描红是同一字形，描红为浅灰。这种字体不画笔顺分步。拼音仍用霞鹜文楷。',
+    song: '宋体用思源宋体子集。标准字和描红是同一字形，描红为浅灰。不画笔顺分步。拼音仍用霞鹜文楷。',
+    hei: '黑体用思源黑体子集。标准字和描红是同一字形，描红为浅灰。不画笔顺分步。拼音仍用霞鹜文楷。',
+    fang: '仿宋用朱雀仿宋预览版子集。标准字和描红是同一字形，描红为浅灰。不画笔顺分步。拼音仍用霞鹜文楷。',
+  };
+  const note = notes[f.id] || notes.stroke;
+  $('fontNote').textContent = note;
+  document.documentElement.style.setProperty('--preview-font', f.family || 'WenKai');
+  if (f.family) await document.fonts.load(`64px "${f.family}"`, '陈一佳怡永国字').catch(() => {});
+}
 function syncNameStyle() {
   $('name').classList.remove('hl');
 }
@@ -130,6 +157,7 @@ function persist() {
     t: document.body.dataset.term,
     u: $('unit').value,
     name: currentName(),
+    font: currentFont().id,
   }));
 }
 
@@ -170,7 +198,8 @@ function show(id) {
   }
   window.scrollTo(0, 0);
 }
-function confirmGenerate() {
+async function confirmGenerate() {
+  await syncFont();
   renderSheet();
   show('p-res');
   fit();
@@ -194,6 +223,20 @@ function defChar(ch) {
   strokes.forEach((_, i) => el('use', { href: `#s-${ch}-${i}` }, g));
   defined.add(ch);
   return true;
+}
+function placeFontChar(parent, ch, x, y, size, fill, family) {
+  const t = el('text', {
+    x: x + size / 2,
+    y: y + size * 0.52,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'font-size': size * 0.74,
+    fill,
+    class: 'glyph',
+    'data-glyph-font': family,
+  }, parent);
+  t.style.fontFamily = `"${family}", WenKai`;
+  t.textContent = ch;
 }
 function placeChar(parent, ch, x, y, size, fill, pad = 0.07, upTo = null, hiFill = null) {
   const s = (size * (1 - 2 * pad)) / 1024;
@@ -231,7 +274,7 @@ function buildPage(rows, meta, pageNo, pageCount, o) {
     const py = el('text', { x: x0 + cell / 2, y: y + BAND - 1.4, 'font-size': 4.6, 'text-anchor': 'middle', fill: '#222' }, row);
     py.textContent = it.py;
     const strokes = STROKES[it.c] || [];
-    if (o.steps && strokes.length) {
+    if (o.steps && !o.fontFamily && strokes.length) {
       const maxT = Math.floor(((cols - 1) * cell) / THUMB);
       const n = Math.min(strokes.length, maxT);
       const start = strokes.length - n;
@@ -247,7 +290,10 @@ function buildPage(rows, meta, pageNo, pageCount, o) {
       el('rect', { x: gx, y: gy, width: cell, height: cell, fill: 'none', stroke: red, 'stroke-width': 0.35 }, row);
       el('line', { x1: gx + cell / 2, x2: gx + cell / 2, y1: gy, y2: gy + cell, stroke: faint, 'stroke-width': 0.2, 'stroke-dasharray': '1.2 0.9' }, row);
       el('line', { x1: gx, x2: gx + cell, y1: gy + cell / 2, y2: gy + cell / 2, stroke: faint, 'stroke-width': 0.2, 'stroke-dasharray': '1.2 0.9' }, row);
-      if (STROKES[it.c]) {
+      if (o.fontFamily) {
+        if (c === 0) placeFontChar(row, it.c, gx, gy, cell, '#111', o.fontFamily);
+        else if (c <= o.trace) placeFontChar(row, it.c, gx, gy, cell, '#cfcfcf', o.fontFamily);
+      } else if (STROKES[it.c]) {
         if (c === 0) placeChar(row, it.c, gx, gy, cell, '#111');
         else if (c <= o.trace) placeChar(row, it.c, gx, gy, cell, '#cfcfcf');
       }
@@ -279,12 +325,15 @@ function renderSheet() {
   const count = Math.max(1, Math.ceil(list.length / rpp) || 1);
   const meta = metaLine();
   for (let p = 0; p < count; p++) {
-    pages.appendChild(buildPage(list.slice(p * rpp, (p + 1) * rpp), meta, p + 1, count, { cell, trace, steps, name }));
+    const font = currentFont();
+    pages.appendChild(buildPage(list.slice(p * rpp, (p + 1) * rpp), meta, p + 1, count, {
+      cell, trace, steps: steps && !font.family, name, fontFamily: font.family,
+    }));
   }
   const missing = list.filter((c) => !STROKES[c.c]).map((c) => c.c);
   const missPy = list.filter((c) => !c.py).map((c) => c.c);
   const who = name ? `姓名 ${name} ${head.length} 行 + 生字 ${lessons.length} 行` : `不加姓名 · 生字 ${lessons.length} 行`;
-  let tip = `${meta} · ${who} · 共 ${list.length} 行 · 每字一行 · A4 打印`;
+  let tip = `${meta} · ${who} · ${currentFont().label} · 共 ${list.length} 行 · 每字一行 · A4 打印`;
   if (!list.length) tip = `${meta} · 本单元没有写字表生字`;
   if (missing.length) tip += `；缺笔顺 ${[...new Set(missing)].join('')}`;
   if (missPy.length) tip += `；缺拼音 ${[...new Set(missPy)].join('')}`;

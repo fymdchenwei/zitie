@@ -49,6 +49,14 @@ try:
         assert pg2.get_attribute('body', 'data-lesson-rows') == '17'
         assert rows(pg2)[0] == 'lesson:一yī'
         print('OFFLINE OK:', pg2.inner_text('#rtip'))
+        pg2.click('#back')
+        pg2.select_option('#font', 'song')
+        pg2.click('#go')
+        pg2.wait_for_selector('body[data-font="song"]')
+        fam = pg2.eval_on_selector('[data-glyph-font]', 'e => getComputedStyle(e).fontFamily')
+        assert 'ZitieSong' in fam, fam
+        assert pg2.get_attribute('body', 'data-lesson-rows') == '17'
+        print('OFFLINE FONT', fam)
         pg2.screenshot(path=str(ROOT / 'samples/mobile-offline.png'))
         b.close()
 finally:

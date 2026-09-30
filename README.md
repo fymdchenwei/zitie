@@ -29,6 +29,22 @@ python3 -m http.server -d app
 
 结果页「打印」打开系统打印（含 AirPrint）。「保存为PDF」打开同一个打印对话框，在其中选择“另存为 PDF”。
 
+## 字体
+
+设置页可以选择字体，作用于字帖里的标准字和描红。默认是「笔画楷体」：沿用笔画轮廓，标准字、描红和笔顺分步是同一套数据，不是字体文件。
+
+另外四种是离线字体文件，标准字和浅灰描红使用同一个字形。笔顺分步只在「笔画楷体」下出现。拼音始终用霞鹜文楷。
+
+| 选项 | 实际字体 | 说明 |
+| --- | --- | --- |
+| 笔画楷体（默认） | 笔画 SVG（hanzi-writer-data） | 含笔顺分步 |
+| 楷体 | 霞鹜文楷 GB 子集 | 已随应用打包，SIL OFL 1.1 |
+| 宋体 | 思源宋体 / Noto Serif SC 子集 | `app/fonts/ZitieSong-subset.woff2` |
+| 黑体 | 思源黑体 / Noto Sans SC 子集 | `app/fonts/ZitieHei-subset.woff2` |
+| 仿宋 | 朱雀仿宋 v0.212 预览版子集 | 上游仍标为测试版；`app/fonts/ZitieFang-subset.woff2` |
+
+写字表和姓名用到的字都在这几个子集里，没有缺字。子集文件大约是：楷体 1.6 MB（原本就有）、宋体 439 KB、黑体 342 KB、仿宋 847 KB。子集不用上游的保留字体名。许可说明在 `app/licenses/`。
+
 ## 姓名拼音与离线数据
 
 拼音写在 `app/config.js` 的 `namePinyin`，并随 `config.js` 进入 Service Worker 预缓存：
