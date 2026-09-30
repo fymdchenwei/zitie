@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>小学汉字字帖 · 新版流程 Mockup v2</title>
+<style>
+:root{
+  --green:#4fae8a; --green-d:#2f8a69; --green-l:#e6f5ee;
+  --blue:#5b9bd5; --blue-l:#e8f1fb;
+  --ink:#24323a; --sub:#6b7b85; --line:#dbe6ea; --bg:#f4f9f8;
+  --r:20px; --tap:52px;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","WenQuanYi Micro Hei",sans-serif;
+  --kai:"Kaiti SC","STKaiti","KaiTi","楷体","Noto Serif CJK SC","Songti SC",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+.page{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;max-width:720px;margin:0 auto;position:relative}
+.page.active{display:flex}
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;gap:12px;padding:20px 20px 8px}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;display:grid;place-items:center;font:700 24px var(--kai)}
+.top h1{font-size:21px;margin:0;line-height:1.2}
+.top small{display:block;color:var(--sub);font-size:13px;margin-top:2px}
+.step{margin-left:auto;font-size:12px;color:var(--green-d);background:var(--green-l);padding:5px 10px;border-radius:99px;white-space:nowrap}
+/* ---------- settings ---------- */
+.body{flex:1;padding:8px 20px 150px;display:flex;flex-direction:column;gap:16px}
+.field label,.lbl{display:block;font-size:14px;font-weight:600;color:var(--sub);margin:0 0 7px 4px}
+.grades{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.chip{height:var(--tap);border-radius:16px;border:2px solid var(--line);background:#fff;font:600 19px var(--sans);color:var(--ink);cursor:pointer}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 6px 14px rgba(79,174,138,.28)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;height:var(--tap);background:#e9f0f3;border-radius:16px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;border-radius:12px;background:transparent;font:600 17px var(--sans);color:var(--sub);cursor:pointer}
+.seg button.on{background:#fff;color:var(--blue);box-shadow:0 2px 8px rgba(60,100,140,.18)}
+select{width:100%;height:var(--tap);border-radius:16px;border:2px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%235b9bd5' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center;
+  padding:0 38px 0 16px;font:600 17px var(--sans);color:var(--ink);appearance:none;-webkit-appearance:none}
+select:focus{outline:none;border-color:var(--blue)}
+select.pending{color:#98a7af;font-weight:500}
+select.hl{border-color:#e9a23b;animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.name-field select{border-color:#b9dccb;background-color:#fbfefc}
+/* preview */
+.pv{background:#fff;border:2px dashed #cfe3d9;border-radius:var(--r);padding:12px 14px 14px}
+.pv-h{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:600;color:var(--green-d);margin-bottom:10px}
+.pv-h span.t{font-weight:500;color:var(--sub);font-size:12px}
+.pv-empty{color:#98a7af;font-size:14px;text-align:center;padding:22px 0}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;align-items:end}
+.cell{display:flex;flex-direction:column}
+.py{height:18px;font-size:13px;color:var(--green-d);text-align:center;line-height:18px;font-weight:600;letter-spacing:.2px}
+.tz{aspect-ratio:1;border:1.5px solid #8fb9a6;margin-left:-1.5px;position:relative;display:grid;place-items:center;
+  font-family:var(--kai);line-height:1;color:#1f2d33;
+  background:
+   linear-gradient(to right,transparent calc(50% - .5px),#c7dcd2 calc(50% - .5px),#c7dcd2 calc(50% + .5px),transparent calc(50% + .5px)),
+   linear-gradient(to bottom,transparent calc(50% - .5px),#c7dcd2 calc(50% - .5px),#c7dcd2 calc(50% + .5px),transparent calc(50% + .5px));
+  background-color:#fff}
+.tz::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(45deg,transparent calc(50% - .5px),#e3eee8 calc(50% - .5px),#e3eee8 calc(50% + .5px),transparent calc(50% + .5px)),
+   linear-gradient(-45deg,transparent calc(50% - .5px),#e3eee8 calc(50% - .5px),#e3eee8 calc(50% + .5px),transparent calc(50% + .5px));opacity:.0}
+.tz.std{color:#1f2d33}
+.tz.ghost{color:#cfd6d9}
+.tz .g{font-size:var(--fs,34px)}
+.cell:first-child .tz{margin-left:0}
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:720px;padding:14px 20px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 78%,rgba(244,249,248,0));z-index:5}
+.cta{width:100%;height:64px;border:0;border-radius:24px;background:linear-gradient(135deg,var(--green),#47a5a0 60%,var(--blue));color:#fff;font:700 22px var(--sans);letter-spacing:4px;box-shadow:0 10px 22px rgba(70,150,150,.35);cursor:pointer}
+.cta:active{transform:scale(.985)}
+.note{margin:8px 6px 0;font-size:10.5px;line-height:1.45;color:#8c9aa2;text-align:center}
+.note b{color:#76858d}
+/* ---------- result ---------- */
+.back{height:48px;padding:0 18px 0 12px;border:2px solid var(--line);background:#fff;border-radius:16px;font:600 16px var(--sans);color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:4px}
+.r-body{flex:1;padding:6px 20px 190px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.r-tip{font-size:13px;color:var(--sub)}
+.a4{width:100%;max-width:520px;aspect-ratio:210/297;background:#fff;border-radius:6px;box-shadow:0 10px 30px rgba(50,90,110,.18),0 0 0 1px #e3ebee;padding:7% 7% 6%;display:flex;flex-direction:column;container-type:inline-size}
+.a4-h{display:flex;flex-direction:column;gap:1.4cqw;border-bottom:.4cqw solid var(--green);padding-bottom:2.6cqw;margin-bottom:3.2cqw}
+.a4-h .ttl{font-size:5.4cqw;font-weight:700;text-align:center;letter-spacing:.6cqw}
+.a4-h .meta{display:flex;justify-content:space-between;font-size:3.4cqw;color:#44545c}
+.a4-h .meta b{font-family:var(--kai);font-size:4.4cqw;color:#111;border-bottom:.3cqw solid #555;padding:0 2cqw;margin-left:1cqw}
+.a4 .rows{gap:2.2cqw}
+.a4 .py{height:4.2cqw;font-size:3cqw;line-height:4.2cqw}
+.a4 .tz .g{font-size:var(--fs2,7cqw)}
+.a4-ft{margin-top:auto;text-align:center;font-size:2.6cqw;color:#9aa8ae}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.abtn{height:68px;border:0;border-radius:22px;color:#fff;font:700 19px var(--sans);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.abtn small{font-size:11.5px;font-weight:500;opacity:.92}
+.abtn.p{background:linear-gradient(135deg,var(--green),#3f9f8f);box-shadow:0 8px 18px rgba(63,159,143,.32)}
+.abtn.s{background:linear-gradient(135deg,var(--blue),#4a86c7);box-shadow:0 8px 18px rgba(74,134,199,.32)}
+/* ---------- tablet ---------- */
+@media (min-width:600px){
+  :root{--tap:60px}
+  .top{padding:32px 36px 12px}.top h1{font-size:27px}.top small{font-size:15px}.logo{width:54px;height:54px;font-size:30px;border-radius:17px}
+  .body{padding:12px 36px 170px;gap:22px}
+  .field label,.lbl{font-size:16px}
+  .chip{font-size:22px}.seg button{font-size:19px}select{font-size:19px}
+  .grades{gap:12px}.two{gap:18px}
+  .pv{padding:18px 22px 22px}.pv-h{font-size:16px}.pv-h span.t{font-size:14px}
+  .py{font-size:16px;height:24px;line-height:24px}
+  .rows{gap:12px}
+  .tz .g{--fs:54px}
+  .cta{height:74px;font-size:26px}
+  .note{font-size:12px}
+  .r-body{padding:10px 36px 210px}
+  .abtn{height:76px;font-size:22px}.abtn small{font-size:13px}
+}
+/* ---------- print ---------- */
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .top,.bar,.r-tip,#p-set{display:none!important}
+  .r-body{padding:0}
+  .a4{max-width:none;width:210mm;height:297mm;box-shadow:none;border-radius:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 设置页 ================= -->
+<section class="page active" id="p-set">
+  <div class="top">
+    <div class="logo">字</div>
+    <div><h1>汉字字帖</h1><small>选好内容，一键生成练习页</small></div>
+    <div class="step">① 设置</div>
+  </div>
+
+  <div class="body">
+    <div class="field">
+      <label>年级</label>
+      <div class="grades" id="grades"></div>
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label>学期</label>
+        <div class="seg" id="term"><button class="on" data-v="上">上学期</button><button data-v="下">下学期</button></div>
+      </div>
+      <div class="field">
+        <label for="unit">单元</label>
+        <select id="unit"></select>
+      </div>
+    </div>
+
+    <div class="field name-field">
+      <label for="name">姓名 <span style="font-weight:400;color:#9aa8b0">（将显示在页眉，并按字生成练习行）</span></label>
+      <select id="name" class="pending">
+        <option value="">请选择姓名</option>
+        <option value="陈一">陈一</option>
+        <option value="陈佳怡">陈佳怡</option>
+      </select>
+    </div>
+
+    <div class="pv" id="pv"></div>
+  </div>
+
+  <div class="bar">
+    <button class="cta" id="go">确认生成</button>
+    <div class="note"><b>设计备注：</b>PWA 无法静默直连局域网打印机，只能走系统打印 / AirPrint；姓名选项可扩展（后续可增减学生）。</div>
+  </div>
+</section>
+
+<!-- ================= 结果页 ================= -->
+<section class="page" id="p-res">
+  <div class="top">
+    <button class="back" id="back">‹ 返回设置</button>
+    <div class="step" style="margin-left:auto">② 预览 · A4</div>
+  </div>
+  <div class="r-body">
+    <div class="a4" id="a4"></div>
+    <div class="r-tip" id="rtip"></div>
+  </div>
+  <div class="bar">
+    <div class="actions">
+      <button class="abtn p" id="print">打印<small>系统打印 / AirPrint</small></button>
+      <button class="abtn s" id="pdf">保存为PDF<small>在打印对话框选“另存为PDF”</small></button>
+    </div>
+    <div class="note"><b>设计备注：</b>PWA 无法静默直连局域网打印机，只能走系统打印 / AirPrint；姓名选项可扩展。</div>
+  </div>
+</section>
+
+<script>
+const PINYIN={"陈":"chén","一":"yī","佳":"jiā","怡":"yí"};
+const $=s=>document.querySelector(s);
+const state={grade:1,term:"上",unit:1,name:""};
+const CN=["一","二","三","四","五","六"];
+
+// grades
+const gEl=$("#grades");
+for(let i=1;i<=6;i++){const b=document.createElement("button");b.className="chip"+(i===1?" on":"");b.textContent=i;b.setAttribute("aria-label",CN[i-1]+"年级");b.onclick=()=>{state.grade=i;[...gEl.children].forEach((c,k)=>c.classList.toggle("on",k===i-1))};gEl.appendChild(b)}
+// term
+$("#term").onclick=e=>{const b=e.target.closest("button");if(!b)return;state.term=b.dataset.v;[...$("#term").children].forEach(c=>c.classList.toggle("on",c===b))};
+// unit
+const uEl=$("#unit");for(let i=1;i<=8;i++){uEl.add(new Option("第"+i+"单元",i))}
+uEl.onchange=()=>state.unit=+uEl.value;
+
+function cells(ch,n){
+  // 1 标准字 + 2 浅灰描红 + 其余空白田字格
+  let h="";
+  for(let i=0;i<n;i++){
+    const cls=i===0?"std":(i<=2?"ghost":"");
+    const g=i<=2?`<span class="g">${ch}</span>`:"";
+    h+=`<div class="cell"><div class="py">${i===0?PINYIN[ch]:""}</div><div class="tz ${cls}">${g}</div></div>`;
+  }
+  return h;
+}
+function rowsHTML(name,n){return `<div class="rows">`+[...name].map(c=>`<div class="row" style="--n:${n}">${cells(c,n)}</div>`).join("")+`</div>`}
+
+function renderPV(){
+  const pv=$("#pv"), n=state.name;
+  if(!n){pv.innerHTML=`<div class="pv-h">练习行预览</div><div class="pv-empty">选择姓名后，这里会按姓名里的每个字<br>生成一行练习格</div>`;return}
+  const py=[...n].map(c=>PINYIN[c]).join(" / ");
+  pv.innerHTML=`<div class="pv-h"><span>将按字生成练习行 · 共 ${[...n].length} 行</span><span class="t">${[...n].join("、")}（${py}）</span></div>`+rowsHTML(n,5)+
+   `<div style="margin-top:8px;font-size:11.5px;color:#8c9aa2;text-align:center">每字一行：拼音 + 标准字 + 浅灰描红 + 空白田字格</div>`;
+}
+const nEl=$("#name");
+nEl.onchange=()=>{state.name=nEl.value;nEl.classList.toggle("pending",!nEl.value);nEl.classList.remove("hl");renderPV()};
+renderPV();
+
+function show(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));window.scrollTo(0,0)}
+$("#go").onclick=()=>{
+  if(!state.name){nEl.classList.add("hl");nEl.focus();setTimeout(()=>nEl.classList.remove("hl"),900);return}
+  const n=[...state.name];
+  $("#a4").innerHTML=`<div class="a4-h"><div class="ttl">小学汉字字帖</div>
+    <div class="meta"><span>${state.grade}年级 · ${state.term}学期 · 第${state.unit}单元</span><span>姓名<b>${state.name}</b></span></div></div>`+
+    rowsHTML(state.name,8)+`<div class="a4-ft">共 ${n.length} 行 · 每字一行 · A4 打印</div>`;
+  $("#rtip").textContent="预览仅示意，实际以 A4 纸张输出";
+  show("p-res");
+};
+$("#back").onclick=()=>show("p-set");
+$("#print").onclick=()=>window.print();
+$("#pdf").onclick=()=>window.print();
+</script>
+</body>
+</html>
