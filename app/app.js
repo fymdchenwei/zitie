@@ -31,9 +31,10 @@ async function init() {
     if (!b) return;
     setTerm(b.dataset.v);
     fillUnits($('unit').value);
+    renderPreview();
     persist();
   };
-  $('unit').onchange = persist;
+  $('unit').onchange = () => { renderPreview(); persist(); };
   $('name').onchange = () => { syncNameStyle(); renderPreview(); persist(); };
   $('go').onclick = confirmGenerate;
   $('back').onclick = () => show('p-set');
@@ -61,6 +62,7 @@ function buildGrades() {
     b.onclick = () => {
       setGrade(x.grade);
       fillUnits($('unit').value);
+      renderPreview();
       persist();
     };
     gEl.appendChild(b);
@@ -101,13 +103,20 @@ function buildNames() {
   CONFIG.names.forEach((name) => n.add(new Option(name, name)));
 }
 function syncNameStyle() {
-  const n = $('name');
-  n.classList.toggle('pending', !n.value);
-  n.classList.remove('hl');
+  $('name').classList.remove('hl');
 }
 function currentName() { return $('name').value; }
+function currentUnit() {
+  const term = curTerm();
+  return term.units.find((u) => u.no == $('unit').value) || term.units[0];
+}
 function nameRows(name) {
-  return [...name].map((c) => ({ c, py: CONFIG.namePinyin[c] || '' }));
+  return [...name].map((c) => ({ c, py: CONFIG.namePinyin[c] || '', kind: 'name' }));
+}
+function lessonRows() {
+  const list = [];
+  currentUnit().lessons.forEach((l) => l.chars.forEach((c) => list.push({ c: c.c, py: c.py || '', kind: 'lesson' })));
+  return list;
 }
 function metaLine() {
   const term = curTerm();
@@ -124,43 +133,44 @@ function persist() {
   }));
 }
 
-function cells(ch, n) {
+function cells(ch, py, n) {
   let h = '';
   for (let i = 0; i < n; i++) {
     const cls = i === 0 ? 'std' : (i <= 2 ? 'ghost' : '');
     const g = i <= 2 ? `<span class="g">${ch}</span>` : '';
-    h += `<div class="cell"><div class="py">${i === 0 ? (CONFIG.namePinyin[ch] || '') : ''}</div><div class="tz ${cls}">${g}</div></div>`;
+    h += `<div class="cell"><div class="py">${i === 0 ? py : ''}</div><div class="tz ${cls}">${g}</div></div>`;
   }
   return h;
 }
 function renderPreview() {
   const pv = $('pv');
   const name = currentName();
-  if (!name) {
-    pv.innerHTML = '<div class="pv-h">练习行预览</div><div class="pv-empty">选择姓名后，这里会按姓名里的每个字<br>生成一行练习格</div>';
-    return;
-  }
-  const rows = nameRows(name);
-  const py = rows.map((r) => r.py).join(' / ');
-  pv.innerHTML = `<div class="pv-h"><span>将按字生成练习行 · 共 ${rows.length} 行</span><span class="t">${[...name].join('、')}（${py}）</span></div>`
-    + `<div class="rows">` + rows.map((r) => `<div class="row" style="--n:5">${cells(r.c, 5)}</div>`).join('') + `</div>`
+  const lessons = lessonRows();
+  const head = name ? nameRows(name) : [];
+  const title = name
+    ? `姓名 ${head.length} 行在前 · 随后本单元生字 ${lessons.length} 行`
+    : `不加姓名 · 只生成本单元生字 ${lessons.length} 行`;
+  const sample = head.length ? head : lessons.slice(0, 2);
+  const rows = sample.length
+    ? `<div class="rows">` + sample.map((r) => `<div class="row" style="--n:5">${cells(r.c, r.py, 5)}</div>`).join('') + `</div>`
+    : '<div class="pv-empty">这个单元没有写字表生字</div>';
+  const py = head.map((r) => r.py).filter(Boolean).join(' / ');
+  pv.innerHTML = `<div class="pv-h"><span>${title}</span>${py ? `<span class="t">${py}</span>` : ''}</div>`
+    + rows
     + '<div class="pv-foot">每字一行：拼音 + 标准字 + 浅灰描红 + 空白田字格</div>';
 }
 
 function show(id) {
   document.querySelectorAll('.view').forEach((p) => p.classList.toggle('active', p.id === id));
   document.body.dataset.view = id === 'p-res' ? 'result' : 'settings';
-  if (id !== 'p-res') delete document.body.dataset.rows;
+  if (id !== 'p-res') {
+    delete document.body.dataset.rows;
+    delete document.body.dataset.nameRows;
+    delete document.body.dataset.lessonRows;
+  }
   window.scrollTo(0, 0);
 }
 function confirmGenerate() {
-  if (!currentName()) {
-    const n = $('name');
-    n.classList.add('hl');
-    n.focus();
-    setTimeout(() => n.classList.remove('hl'), 900);
-    return;
-  }
   renderSheet();
   show('p-res');
   fit();
@@ -200,21 +210,24 @@ function buildPage(rows, meta, pageNo, pageCount, o) {
   const x0 = (A4.w - gridW) / 2;
   const page = document.createElement('div');
   page.className = 'sheet';
+  page.dataset.page = String(pageNo);
   const svg = el('svg', { class: 'pg', viewBox: `0 0 ${A4.w} ${A4.h}`, xmlns: SVGNS }, page);
   const red = '#c0392b', faint = '#e3a59d';
   const top = CONFIG.pageMargin.top;
   const title = el('text', { x: A4.w / 2, y: top + 5, 'font-size': 6.2, 'text-anchor': 'middle', fill: '#111', class: 'hdrtext' }, svg);
   title.textContent = '小学汉字字帖';
   el('text', { x: x0, y: top + 11, 'font-size': 3.6, fill: '#333' }, svg).textContent = meta;
-  const right = el('text', { x: x0 + gridW, y: top + 11, 'font-size': 3.6, fill: '#333', 'text-anchor': 'end' }, svg);
-  right.append('姓名 ');
-  const nm = el('tspan', { 'font-size': 5, fill: '#111' }, right);
-  nm.textContent = o.name;
+  if (o.name) {
+    const right = el('text', { x: x0 + gridW, y: top + 11, 'font-size': 3.6, fill: '#333', 'text-anchor': 'end' }, svg);
+    right.append('姓名 ');
+    const nm = el('tspan', { 'font-size': 5, fill: '#111' }, right);
+    nm.textContent = o.name;
+  }
   el('line', { x1: x0, x2: x0 + gridW, y1: top + 13.5, y2: top + 13.5, stroke: red, 'stroke-width': 0.5 }, svg);
   const rowH = BAND + cell;
   let y = top + CONFIG.headerHeightMm;
   rows.forEach((it) => {
-    const row = el('g', { 'data-row': it.c, 'data-py': it.py }, svg);
+    const row = el('g', { 'data-row': it.c, 'data-py': it.py, 'data-kind': it.kind || 'lesson' }, svg);
     const py = el('text', { x: x0 + cell / 2, y: y + BAND - 1.4, 'font-size': 4.6, 'text-anchor': 'middle', fill: '#222' }, row);
     py.textContent = it.py;
     const strokes = STROKES[it.c] || [];
@@ -253,7 +266,9 @@ function rowsPerPage(cell) {
 
 function renderSheet() {
   const name = currentName();
-  const list = nameRows(name);
+  const head = name ? nameRows(name) : [];
+  const lessons = lessonRows();
+  const list = head.concat(lessons);
   list.forEach((c) => defChar(c.c));
   const cell = CONFIG.gridMm;
   const trace = CONFIG.traceCount;
@@ -268,11 +283,15 @@ function renderSheet() {
   }
   const missing = list.filter((c) => !STROKES[c.c]).map((c) => c.c);
   const missPy = list.filter((c) => !c.py).map((c) => c.c);
-  let tip = `${meta} · 姓名 ${name} · 共 ${list.length} 行 · 每字一行 · A4 打印`;
-  if (missing.length) tip += `；缺笔顺 ${missing.join('')}`;
-  if (missPy.length) tip += `；缺拼音 ${missPy.join('')}`;
+  const who = name ? `姓名 ${name} ${head.length} 行 + 生字 ${lessons.length} 行` : `不加姓名 · 生字 ${lessons.length} 行`;
+  let tip = `${meta} · ${who} · 共 ${list.length} 行 · 每字一行 · A4 打印`;
+  if (!list.length) tip = `${meta} · 本单元没有写字表生字`;
+  if (missing.length) tip += `；缺笔顺 ${[...new Set(missing)].join('')}`;
+  if (missPy.length) tip += `；缺拼音 ${[...new Set(missPy)].join('')}`;
   $('rtip').textContent = tip;
   document.body.dataset.rows = String(list.length);
+  document.body.dataset.nameRows = String(head.length);
+  document.body.dataset.lessonRows = String(lessons.length);
   persist();
   fit();
 }

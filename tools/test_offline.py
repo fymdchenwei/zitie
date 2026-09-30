@@ -10,6 +10,10 @@ if link.is_symlink() or link.exists():
 link.symlink_to(ROOT / 'app')
 srv = subprocess.Popen([sys.executable, '-m', 'http.server', '8766', '-d', str(preview)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
+
+def rows(page):
+    return page.eval_on_selector_all('[data-row]', "els => els.map(e => e.getAttribute('data-kind') + ':' + e.getAttribute('data-row') + e.getAttribute('data-py'))")
+
 try:
     with sync_playwright() as p:
         chrome = Path('/usr/local/bin/google-chrome')
@@ -18,10 +22,16 @@ try:
         pg = ctx.new_page()
         pg.goto('http://127.0.0.1:8766/zitie/')
         pg.wait_for_selector('body[data-ready="1"]')
-        pg.select_option('#name', '陈一')
+        assert pg.input_value('#name') == ''
+        pg.select_option('#unit', '1')
+        pg.select_option('#name', '陈佳怡')
         pg.click('#go')
-        pg.wait_for_selector('body[data-view="result"]')
-        assert pg.get_attribute('body', 'data-rows') == '2', pg.get_attribute('body', 'data-rows')
+        pg.wait_for_selector('body[data-name-rows="3"]')
+        got = rows(pg)
+        assert got[:3] == ['name:陈chén', 'name:佳jiā', 'name:怡yí'], got[:5]
+        assert pg.get_attribute('body', 'data-lesson-rows') == '17', pg.get_attribute('body', 'data-lesson-rows')
+        assert got[3] == 'lesson:一yī', got[3]
+        assert len(got) == 20
         pg.evaluate("navigator.serviceWorker.ready.then(()=>1)")
         time.sleep(2)
         print('sw controller:', pg.evaluate("!!navigator.serviceWorker.controller"), 'cache keys:', pg.evaluate("caches.keys()"))
@@ -32,9 +42,12 @@ try:
         pg2 = ctx.new_page()
         pg2.goto('http://127.0.0.1:8766/zitie/')
         pg2.wait_for_selector('body[data-ready="1"]', timeout=10000)
-        pg2.select_option('#name', '陈佳怡')
+        pg2.select_option('#name', '')
+        pg2.select_option('#unit', '1')
         pg2.click('#go')
-        pg2.wait_for_selector('body[data-rows="3"]')
+        pg2.wait_for_selector('body[data-name-rows="0"]')
+        assert pg2.get_attribute('body', 'data-lesson-rows') == '17'
+        assert rows(pg2)[0] == 'lesson:一yī'
         print('OFFLINE OK:', pg2.inner_text('#rtip'))
         pg2.screenshot(path=str(ROOT / 'samples/mobile-offline.png'))
         b.close()
